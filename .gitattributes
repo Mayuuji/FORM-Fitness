@@ -1,1 +1,2 @@
 *.tflite filter=lfs diff=lfs merge=lfs -text
+app/src/main/assets/hrnet_pose.tflite filter=lfs diff=lfs merge=lfs -text
