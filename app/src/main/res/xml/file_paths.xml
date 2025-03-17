@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Provide access to files stored in the app's internal storage -->
+    <files-path name="tflite_model" path=""/>
+
+    <!-- Allow access to files in the cache directory -->
+    <cache-path name="cache_files" path=""/>
+
+    <!-- Provide access to external storage files (if needed) -->
+    <external-files-path name="external_files" path=""/>
+</paths>
+
