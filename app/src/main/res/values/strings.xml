@@ -1,3 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Camera2</string>
+    <string name="app_name">Form</string>
+
+    <!-- Curls screen -->
+    <string name="initial_rep">0</string>
+    <string name="reps_title">Reps</string>
+    <string name="advice_initial"></string>
+    <string name="avoid_moving_elbows">Avoid moving your elbows!</string>
+    <string name="preview_skeleton">Skeleton overlay</string>
+    <string name="switch_camera">Switch Camera</string>
+    <string name="exit">Exit</string>
+
+    <!-- Launch screen -->
+    <string name="logo_desc">Form logo</string>
+    <string name="intro_text">Pick a workout to begin</string>
+    <string name="btn_pushups">Push‑ups</string>
+    <string name="btn_curls">Curls</string>
 </resources>

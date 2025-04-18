@@ -1,5 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <!-- Brand palette -->
+    <color name="brand_green">#50C878</color>
+    <color name="brand_green_dark">#37985B</color>
+
+    <!-- UI palette -->
+    <color name="lavender">#BB86FC</color>
+    <color name="black">#000000</color>
 </resources>

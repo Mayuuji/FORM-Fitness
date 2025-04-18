@@ -1,9 +1,12 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.Camera2" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
-    </style>
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Single app theme -->
+    <style name="Theme.Form" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/brand_green</item>
+        <item name="colorPrimaryVariant">@color/brand_green_dark</item>
+        <item name="colorAccent">@color/brand_green</item>
 
-    <style name="Theme.Camera2" parent="Base.Theme.Camera2" />
+        <!-- Apply our custom button style globally -->
+        <item name="materialButtonStyle">@style/Widget.FormButton</item>
+    </style>
 </resources>
