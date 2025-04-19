@@ -13,10 +13,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Form">
 
-        <!-- Launch / menu activity -->
-        <activity
-            android:name=".MainActivity"
-            android:exported="true">
+        <!-- Launch / menu -->
+        <activity android:name=".MainActivity" android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
@@ -24,9 +22,10 @@
         </activity>
 
         <!-- Workout screens -->
-        <activity android:name=".PushupActivity" android:exported="false"/>
-        <activity android:name=".CurlsActivity"  android:exported="false"/>
-        <activity android:name=".SquatActivity"  android:exported="false"/>
+        <activity android:name=".PushupActivity"   android:exported="false"/>
+        <activity android:name=".CurlsSetupActivity" android:exported="false"/>
+        <activity android:name=".CurlsActivity"   android:exported="false"/>
+        <activity android:name=".SquatActivity"   android:exported="false"/>
 
     </application>
 </manifest>

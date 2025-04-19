@@ -2,6 +2,10 @@
 <resources>
     <string name="app_name">Form</string>
 
+    <!-- Curls setup -->
+    <string name="activity_re">Reps</string>
+    <string name="rep_count">10</string>
+
     <!-- Curls screen -->
     <string name="initial_rep">0</string>
     <string name="reps_title">Reps</string>
@@ -16,4 +20,5 @@
     <string name="intro_text">Pick a workout to begin</string>
     <string name="btn_pushups">Push‑ups</string>
     <string name="btn_curls">Curls</string>
+    <string name="btn_squats">Squats</string>
 </resources>
