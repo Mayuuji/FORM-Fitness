@@ -23,8 +23,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Internal screens -->
+        <!-- Workout screens -->
         <activity android:name=".PushupActivity" android:exported="false"/>
         <activity android:name=".CurlsActivity"  android:exported="false"/>
+        <activity android:name=".SquatActivity"  android:exported="false"/>
+
     </application>
 </manifest>
