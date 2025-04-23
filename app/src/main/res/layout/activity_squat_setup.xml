@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/squat_setup_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/brand_green">
+
+    <!-- 1) Exercise preview card -->
+    <FrameLayout
+        android:id="@+id/card_preview"
+        android:layout_width="340dp"
+        android:layout_height="284dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="64dp"
+        android:background="@drawable/bg_card_15dp">
+
+        <TextView
+            android:id="@+id/squat_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/btn_squats"
+            android:textAppearance="@style/curls" />
+
+        <ImageView
+            android:id="@+id/imageViewPreview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="48dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/squat_image"
+            android:contentDescription="@string/preview_skeleton" />
+    </FrameLayout>
+
+    <!-- 2) Rep‑count card -->
+    <FrameLayout
+        android:id="@+id/card_reps"
+        android:layout_width="340dp"
+        android:layout_height="328dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="64dp"
+        android:background="@drawable/bg_card_15dp">
+
+        <FrameLayout
+            android:id="@+id/circle_container"
+            android:layout_width="205dp"
+            android:layout_height="205dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="24dp">
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/circle_gray" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <TextView
+                    android:id="@+id/activity_re"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/activity_re"
+                    android:textAppearance="@style/activity_re" />
+
+                <TextView
+                    android:id="@+id/rep_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/rep_count"
+                    android:textAppearance="@style/rep_count"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:text="@string/start"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnDecrease"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:text="@string/btn_decrease"
+            android:textSize="20sp"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnIncrease"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:text="@string/btn_increase"
+            android:textSize="20sp"
+            android:textColor="@color/white" />
+    </FrameLayout>
+</FrameLayout>
