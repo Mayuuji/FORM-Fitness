@@ -20,6 +20,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Camera2"
+rootProject.name = "Form"
 include(":app")
- 
+

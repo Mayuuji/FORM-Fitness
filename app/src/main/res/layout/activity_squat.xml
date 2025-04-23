@@ -1,9 +1,8 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <android.view.TextureView
+    <TextureView
         android:id="@+id/textureView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
@@ -27,7 +26,7 @@
         android:id="@+id/switchCameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Switch Camera"
+        android:text="@string/switch_camera"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="20dp"/>
@@ -48,7 +47,7 @@
         android:id="@+id/textViewHandPosition"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Please position your hands wider than your shoulders"
+        android:text="@string/feet_shoulder_width"
         android:textSize="18sp"
         android:textColor="#FF4444"
         android:background="@android:color/black"
@@ -62,7 +61,7 @@
         android:id="@+id/textViewDepthWarning"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Squat not deep enough. Adjust downThreshold to fine‑tune."
+        android:text="@string/squat_not_deep"
         android:textSize="18sp"
         android:textColor="#FF4444"
         android:background="@android:color/black"
@@ -76,7 +75,7 @@
         android:id="@+id/textViewHandZPosition"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Form mis‑alignment on Z‑axis"
+        android:text="@string/form_misalignment"
         android:textSize="18sp"
         android:textColor="#FF4444"
         android:background="@android:color/black"
@@ -85,5 +84,4 @@
         android:layout_below="@id/textViewDepthWarning"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="8dp"/>
-
 </RelativeLayout>

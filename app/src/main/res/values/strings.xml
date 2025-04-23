@@ -1,12 +1,18 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Form</string>
+
+    <!-- Launch -->
+    <string name="logo_desc">Form logo</string>
+    <string name="intro_text">Pick a workout to begin</string>
+    <string name="btn_pushups">Push‑ups</string>
+    <string name="btn_curls">Curls</string>
+    <string name="btn_squats">Squats</string>
 
     <!-- Curls setup -->
     <string name="activity_re">Reps</string>
     <string name="rep_count">10</string>
 
-    <!-- Curls screen -->
+    <!-- Curls workout -->
     <string name="initial_rep">0</string>
     <string name="reps_title">Reps</string>
     <string name="advice_initial"></string>
@@ -15,10 +21,47 @@
     <string name="switch_camera">Switch Camera</string>
     <string name="exit">Exit</string>
 
-    <!-- Launch screen -->
-    <string name="logo_desc">Form logo</string>
-    <string name="intro_text">Pick a workout to begin</string>
-    <string name="btn_pushups">Push‑ups</string>
-    <string name="btn_curls">Curls</string>
-    <string name="btn_squats">Squats</string>
+    <!-- Push‑up warnings -->
+    <string name="hands_high">Hands too high</string>
+    <string name="hands_low">Hands too low</string>
+
+    <!-- Squat warnings -->
+    <string name="feet_shoulder_width">Please position your feet shoulder‑width apart</string>
+    <string name="squat_not_deep">Squat not deep enough</string>
+    <string name="form_misalignment">Form misalignment on Z‑axis</string>
+
+    <!-- No‑human prompt -->
+    <string name="please_step_into_frame">Please step into frame</string>
+    <string name="btn_return">Return</string>
+    <string name="curls">Curls</string>
+    <string name="start">Start!</string>
+
+    <!-- Move the minus/plus out of layout into strings -->
+    <string name="btn_decrease">–</string>
+    <string name="btn_increase">+</string>
+
+    <string name="pushups">Push‑ups</string>
+    <string name="hands_too_narrow">Hands too narrow</string>
+    <string name="hands_too_wide">Hands too wide</string>
+
+    <string name="feet_too_narrow">Your feet are too narrow!</string>
+    <string name="feet_too_wide">Your feet are too wide!</string>
+    <string name="lean_back">You’re leaning too far backward!</string>
+    <string name="lean_forward">You’re leaning too far forward!</string>
+
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+
+    <string name="create_username">Create Username</string>
+    <string name="create_password">Create Password</string>
+    <string name="back_to_login">Back to Login</string>
+
+    <string name="push_up_tot">Push-Up Total</string>
+    <string name="average_sta">Average Stars</string>
+    <!-- Completed‑workout screen -->
+    <string name="completed_return">Return</string>
+    <string name="default_score">0/5</string>
+
 </resources>

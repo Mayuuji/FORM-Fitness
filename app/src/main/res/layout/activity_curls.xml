@@ -1,112 +1,138 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@android:color/white">
+    android:layout_height="match_parent">
 
-    <!-- Main vertical split: 25% top, 75% bottom -->
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <!-- Top 30% panel: disable clipping + extra bottom padding -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/topPanel"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@drawable/rounded_rect"
+        android:clipToPadding="false"
+        android:clipChildren="false"
+        android:padding="16dp"
+        android:paddingBottom="32dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHeight_percent="0.3">
 
-        <!-- Top 25%: white rounded panel -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@drawable/rounded_rect"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:padding="16dp">
-
-            <!-- Ring + reps -->
-            <FrameLayout
-                android:layout_width="120dp"
-                android:layout_height="120dp"
-                android:clipToPadding="false"
-                android:padding="2dp">
-
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/progressRing"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    app:indicatorSize="120dp"
-                    app:trackThickness="4dp"
-                    app:trackColor="#E0E0E0"
-                    app:indicatorColor="@color/brand_green"
-                    app:indicatorInset="2dp"
-                    android:max="100" />
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <TextView
-                        android:id="@+id/repNumber"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/initial_rep"
-                        android:textSize="72sp"
-                        android:textColor="@color/lavender"
-                        android:textStyle="bold"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/reps_title"
-                        android:textSize="18sp"
-                        android:textColor="@color/black"/>
-                </LinearLayout>
-            </FrameLayout>
-
-            <TextView
-                android:id="@+id/adviceText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/advice_initial"
-                android:layout_marginTop="8dp"
-                android:textColor="@android:color/holo_red_dark"/>
-        </LinearLayout>
-
-        <!-- Bottom 75%: camera preview + overlay -->
+        <!-- Progress ring + rep count -->
         <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3">
+            android:id="@+id/progressContainer"
+            android:layout_width="144dp"
+            android:layout_height="144dp"
+            android:padding="2dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintVertical_bias="0.15"
+            android:clipToPadding="false"
+            android:clipChildren="false">
 
-            <TextureView
-                android:id="@+id/textureView"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
-
-            <ImageView
-                android:id="@+id/imageView"
+            <com.google.android.material.progressindicator.CircularProgressIndicator
+                android:id="@+id/progressRing"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:scaleType="fitCenter"
-                android:contentDescription="@string/preview_skeleton"/>
+                app:indicatorSize="140dp"
+                app:trackThickness="4dp"
+                app:trackColor="#E0E0E0"
+                app:indicatorColor="@color/brand_green"
+                app:indicatorInset="2dp"
+                android:max="100"/>
+
+            <!-- big rep count number -->
+            <TextView
+                android:id="@+id/repNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:translationY="-5dp"
+                android:translationX="2dp"
+                android:gravity="center"
+                android:text="@string/initial_rep"
+                android:textSize="72sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+
+            <!-- "Reps" label, now centered on Y and nudged down -->
+            <TextView
+                android:id="@+id/repsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:translationY="40dp"
+                android:translationX="2dp"
+                android:gravity="center"
+                android:text="@string/reps_title"
+                android:textSize="18sp"
+                android:textColor="@color/black"/>
         </FrameLayout>
-    </LinearLayout>
 
-    <!-- Floating controls -->
-    <Button
-        android:id="@+id/btnSwitchCamera"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/switch_camera"
-        android:layout_gravity="top|start"
-        android:layout_margin="16dp"/>
+        <!-- Advice text: only anchor below ring -->
+        <TextView
+            android:id="@+id/adviceText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+            android:text="@string/avoid_moving_elbows"
+            android:textSize="16sp"
+            android:textColor="@android:color/holo_red_dark"
+            android:layout_marginTop="8dp"
+            app:layout_constraintTop_toBottomOf="@id/progressContainer"
+            app:layout_constraintStart_toStartOf="@id/progressContainer"
+            app:layout_constraintEnd_toEndOf="@id/progressContainer"/>
 
-    <Button
-        android:id="@+id/btnExit"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/exit"
-        android:layout_gravity="top|end"
-        android:layout_margin="16dp"/>
-</FrameLayout>
+        <!-- Switch camera -->
+        <ImageButton
+            android:id="@+id/btnSwitchCamera"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:srcCompat="@drawable/ic_switch_camera"
+            app:tint="@color/black"
+            android:contentDescription="@string/switch_camera"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"/>
+
+        <!-- Exit -->
+        <ImageButton
+            android:id="@+id/btnExit"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:srcCompat="@drawable/ic_close"
+            app:tint="@color/black"
+            android:contentDescription="@string/exit"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Bottom 70%: camera preview -->
+    <TextureView
+        android:id="@+id/textureView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/topPanel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <!-- Skeleton overlay -->
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:scaleType="matrix"
+        android:contentDescription="@string/preview_skeleton"
+        app:layout_constraintTop_toBottomOf="@id/topPanel"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,88 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/curls_setup_root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@color/brand_green">
 
-    <!-- Background panel from Figma -->
-    <View
-        android:id="@+id/rectangle_1"
-        android:layout_width="352dp"
-        android:layout_height="605dp"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="30dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="156dp"
-        android:background="@drawable/rectangle_1"/>
+    <!-- 1) Exercise preview card -->
+    <FrameLayout
+        android:id="@+id/card_preview"
+        android:layout_width="340dp"
+        android:layout_height="284dp"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="64dp"
+        android:background="@drawable/bg_card_15dp">
 
-    <!-- Grey circle behind the number -->
-    <View
-        android:id="@+id/ellipse_1"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="56dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="257dp"
-        android:background="#D9D9D9"/>
+        <TextView
+            android:id="@+id/curls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="16dp"
+            android:gravity="center"
+            android:text="@string/curls"
+            android:textAppearance="@style/curls" />
 
-    <!-- Label “Reps” -->
-    <TextView
-        android:id="@+id/activity_re"
-        android:layout_width="121dp"
-        android:layout_height="36dp"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="145dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="332dp"
-        android:text="@string/activity_re"
-        android:textAppearance="@style/activity_re"
-        android:gravity="center_horizontal|top"/>
+        <ImageView
+            android:id="@+id/imageViewDemo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="48dp"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter"
+            android:src="@drawable/curls_image"
+            android:contentDescription="@string/preview_skeleton" />
+    </FrameLayout>
 
-    <!-- Numeric rep count -->
-    <TextView
-        android:id="@+id/rep_count"
-        android:layout_width="154dp"
-        android:layout_height="77dp"
-        android:layout_alignParentLeft="true"
-        android:layout_marginLeft="129dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginTop="368dp"
-        android:text="@string/rep_count"
-        android:textAppearance="@style/rep_count"
-        android:gravity="center_horizontal|top"/>
+    <!-- 2) Rep‑count card -->
+    <FrameLayout
+        android:id="@+id/card_reps"
+        android:layout_width="340dp"
+        android:layout_height="328dp"
+        android:layout_gravity="bottom|center_horizontal"
+        android:layout_marginBottom="64dp"
+        android:background="@drawable/bg_card_15dp">
 
-    <!-- “Start!” button -->
-    <Button
-        android:id="@+id/btnStartCurls"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Start!"
-        android:layout_centerHorizontal="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="56dp"/>
+        <!-- Container to center both the label and the number inside the circle -->
+        <FrameLayout
+            android:id="@+id/circle_container"
+            android:layout_width="205dp"
+            android:layout_height="205dp"
+            android:layout_gravity="top|center_horizontal"
+            android:layout_marginTop="24dp">
 
-    <!-- Decrease reps -->
-    <Button
-        android:id="@+id/btnDecrease"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="–"
-        android:textSize="24sp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginLeft="30dp"
-        android:layout_marginBottom="16dp"/>
+            <!-- Gray circle background -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/circle_gray" />
 
-    <!-- Increase reps -->
-    <Button
-        android:id="@+id/btnIncrease"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="+"
-        android:textSize="24sp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentBottom="true"
-        android:layout_marginRight="30dp"
-        android:layout_marginBottom="16dp"/>
+            <!-- Vertical stack: “Reps” label above the bold number -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:gravity="center">
 
-</RelativeLayout>
+                <TextView
+                    android:id="@+id/activity_re"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/activity_re"
+                    android:textAppearance="@style/activity_re" />
+
+                <TextView
+                    android:id="@+id/rep_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="@string/rep_count"
+                    android:textAppearance="@style/rep_count"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <!-- Buttons all aligned to the same Y and centering their text -->
+        <Button
+            android:id="@+id/btnStart"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom|center_horizontal"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:paddingLeft="24dp"
+            android:paddingRight="24dp"
+            android:text="@string/start"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnDecrease"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|start"
+            android:layout_marginStart="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:text="@string/btn_decrease"
+            android:textSize="20sp"
+            android:textColor="@color/white" />
+
+        <Button
+            android:id="@+id/btnIncrease"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_gravity="bottom|end"
+            android:layout_marginEnd="32dp"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:backgroundTint="@color/black"
+            android:text="@string/btn_increase"
+            android:textSize="20sp"
+            android:textColor="@color/white" />
+    </FrameLayout>
+</FrameLayout>

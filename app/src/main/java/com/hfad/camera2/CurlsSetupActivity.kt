@@ -7,45 +7,40 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 
 class CurlsSetupActivity : AppCompatActivity() {
-    companion object {
-        const val EXTRA_GOAL = "rep_goal"
-        private const val MIN_REPS = 1
-        private const val MAX_REPS = 100
-    }
 
+    companion object {
+        // must be non-nullable
+        const val EXTRA_GOAL: String = "com.hfad.camera2.EXTRA_GOAL"
+    }
     private var goal = 10
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_curls_setup)
 
-        val tvCount   = findViewById<TextView>(R.id.rep_count)
-        val btnMinus  = findViewById<Button>(R.id.btnDecrease)
-        val btnPlus   = findViewById<Button>(R.id.btnIncrease)
-        val btnStart  = findViewById<Button>(R.id.btnStartCurls)
+        val repCountTV = findViewById<TextView>(R.id.rep_count)
+        val btnDec     = findViewById<Button>(R.id.btnDecrease)
+        val btnInc     = findViewById<Button>(R.id.btnIncrease)
+        val btnStart   = findViewById<Button>(R.id.btnStart)
 
-        // initialize display
-        tvCount.text = goal.toString()
+        repCountTV.text = goal.toString()
 
-        btnMinus.setOnClickListener {
-            if (goal > MIN_REPS) {
+        btnDec.setOnClickListener {
+            if (goal > 1) {
                 goal--
-                tvCount.text = goal.toString()
+                repCountTV.text = goal.toString()
             }
         }
-
-        btnPlus.setOnClickListener {
-            if (goal < MAX_REPS) {
-                goal++
-                tvCount.text = goal.toString()
-            }
+        btnInc.setOnClickListener {
+            goal++
+            repCountTV.text = goal.toString()
         }
-
         btnStart.setOnClickListener {
-            // launch the curls activity with the chosen goal
-            val intent = Intent(this, CurlsActivity::class.java)
-            intent.putExtra(EXTRA_GOAL, goal)
-            startActivity(intent)
+            Intent(this, CurlsActivity::class.java).also {
+                // EXTRA_GOAL is a non-nullable String
+                it.putExtra(EXTRA_GOAL, goal)
+                startActivity(it)
+            }
             finish()
         }
     }
