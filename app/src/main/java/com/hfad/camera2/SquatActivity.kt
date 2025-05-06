@@ -2,166 +2,196 @@ package com.hfad.camera2
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.*
+import android.graphics.Bitmap
+import android.graphics.Matrix
 import android.graphics.SurfaceTexture
 import android.hardware.camera2.*
 import android.os.Bundle
 import android.os.SystemClock
-import android.util.Size
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
-import android.widget.Button
-import android.widget.ImageView
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.google.android.material.progressindicator.CircularProgressIndicator
 import kotlinx.coroutines.*
 import java.io.FileInputStream
+import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.util.concurrent.atomic.AtomicBoolean
+import kotlin.coroutines.CoroutineContext
 import kotlin.math.abs
-import kotlin.math.min
+import kotlin.math.max
 
-@SuppressLint("SetTextI18n", "MissingPermission")
-class SquatActivity : AppCompatActivity(), CoroutineScope by MainScope() {
+@SuppressLint("MissingPermission")
+class SquatActivity : AppCompatActivity(), CoroutineScope {
+    companion object {
+        private const val CAMERA_REQUEST_CODE = 103
+        private const val FRAME_SAMPLE       = 1
+        private const val SCALE_FACTOR       = 1.9f
+        private const val MIN_INTERVAL_MS    = 100L
 
-    private val LS = 5
-    private val RS = 6
-    private val LW = 9
-    private val RW = 10
+        // rep detection: count when hips and knees are level within this tolerance
+        private const val REP_LEVEL_THR      = 0.02f
+        // reset rep gating when hips move away by at least this amount
+        private const val RESET_Y_THR        = 0.05f
 
-    private val DOWN_THR = 0.10f
-    private val UP_THR   = 0.20f
-    private val Z_THR    = 0.02f
+        // error thresholds
+        private const val NARROW_THR         = 0.8f
+        private const val WIDE_THR           = 1.5f
+        private const val LEAN_THR           = 0.10f
+    }
 
-    private val MIN_INFERENCE_INTERVAL_MS = 100L
-    private var lastInferenceTime = 0L
+    private lateinit var job: Job
+    override val coroutineContext: CoroutineContext
+        get() = Dispatchers.Main + job
 
-    private lateinit var preview   : TextureView
-    private lateinit var overlay   : ImageView
-    private lateinit var repView   : TextView
-    private lateinit var handPos   : TextView
-    private lateinit var depthWarn : TextView
-    private lateinit var zWarn     : TextView
+    // UI (reusing activity_curls.xml)
+    private lateinit var preview    : TextureView
+    private lateinit var repNumber  : TextView
+    private lateinit var ring       : CircularProgressIndicator
+    private lateinit var advice     : TextView
+    private lateinit var switchCam  : ImageButton
+    private lateinit var exitBtn    : ImageButton
 
-    private lateinit var cameraBitmap: Bitmap
+    // rep goal
+    private var goal = 10
 
+    // Camera2
     private lateinit var camMan     : CameraManager
-    private var camDevice           : CameraDevice? = null
-    private var idFront             : String?       = null
-    private var idBack              : String?       = null
-    private var useFront            = true
-    private var previewSize         = Size(0, 0)
+    private var camDevice: CameraDevice? = null
+    private var idFront : String?       = null
+    private var idBack  : String?       = null
+    private var useFront = true
 
+    // Pose model
     private lateinit var pose       : PoseHelper
-    private val skeleton            = PoseSkeleton.lines
-    private var reps                = 0
-    private var goingDown           = false
-    private val busy                = AtomicBoolean(false)
 
+    // Keypoint indices
+    private val LS = 5; private val RS = 6    // shoulders
+    private val LH = 11; private val RH = 12  // hips
+    private val LK = 13; private val RK = 14  // knees
+    private val LA = 15; private val RA = 16  // ankles
+
+    // rep & error state
+    private var reps          = 0
+    private var canCount      = true
+    private var firstRepDone  = false
+    private var errorCount    = 0
+
+    // inference throttle
+    private var lastInferenceTime = 0L
+    private val busy              = AtomicBoolean(false)
+    private var frameCount        = 0
+
+    // buffer for camera frames
+    private lateinit var cameraBmp: Bitmap
+
+    @SuppressLint("MissingPermission")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_squat)
+        job = SupervisorJob()
+        setContentView(R.layout.activity_curls)
 
-        preview   = findViewById(R.id.textureView)
-        overlay   = findViewById(R.id.imageView)
-        repView   = findViewById(R.id.textViewRepCount)
-        handPos   = findViewById(R.id.textViewHandPosition)
-        depthWarn = findViewById(R.id.textViewDepthWarning)
-        zWarn     = findViewById(R.id.textViewHandZPosition)
+        // bind UI
+        preview    = findViewById(R.id.textureView)
+        repNumber  = findViewById(R.id.repNumber)
+        ring       = findViewById(R.id.progressRing)
+        advice     = findViewById(R.id.adviceText)
+        switchCam  = findViewById(R.id.btnSwitchCamera)
+        exitBtn    = findViewById(R.id.btnExit)
 
-        findViewById<Button>(R.id.switchCameraButton).setOnClickListener {
-            useFront = !useFront
-            camDevice?.close()
-            configureCamera()
-            openCamera()
-        }
-        findViewById<Button>(R.id.testImageButton).visibility = View.GONE
+        // read goal
+        goal = intent.getIntExtra(SquatSetupActivity.EXTRA_GOAL, goal)
+        ring.max = goal
+        repNumber.text = "0"
+        ring.progress  = 0
 
+        // load pose model
+        pose = loadPoseModel()
+
+        // locate cameras
         camMan = getSystemService(CAMERA_SERVICE) as CameraManager
         camMan.cameraIdList.forEach { id ->
-            val facing = camMan.getCameraCharacteristics(id)
-                .get(CameraCharacteristics.LENS_FACING)
-            if (facing == CameraCharacteristics.LENS_FACING_FRONT) {
-                idFront = id
-            } else if (facing == CameraCharacteristics.LENS_FACING_BACK) {
-                idBack = id
+            when (camMan.getCameraCharacteristics(id)
+                .get(CameraCharacteristics.LENS_FACING)) {
+                CameraCharacteristics.LENS_FACING_FRONT -> idFront = id
+                CameraCharacteristics.LENS_FACING_BACK  -> idBack  = id
             }
         }
 
-        val modelBuf = assets.openFd("hrnet_pose.tflite").use { afd ->
-            FileInputStream(afd.fileDescriptor).channel.map(
-                FileChannel.MapMode.READ_ONLY,
-                afd.startOffset,
-                afd.declaredLength
-            )
+        switchCam.setOnClickListener {
+            useFront = !useFront
+            camDevice?.close()
+            openCamera()
         }
-        pose = PoseHelper(modelBuf)
+        exitBtn.setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+                .apply {
+                    // clear anything on top of MainActivity so you return directly to it
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            startActivity(intent)
+            // finish this activity so it can’t come back on Back
+            finish()
+        }
+
+        preview.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
+            override fun onSurfaceTextureAvailable(st: SurfaceTexture, w: Int, h: Int) {
+                val camId = (if (useFront) idFront else idBack) ?: return
+                val map   = camMan.getCameraCharacteristics(camId)
+                    .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP) ?: return
+                val best  = map.getOutputSizes(SurfaceTexture::class.java)
+                    .maxByOrNull { it.width.toLong() * it.height }!!
+                st.setDefaultBufferSize(best.width, best.height)
+
+                val sx = w.toFloat() / best.width
+                val sy = h.toFloat() / best.height
+                val s  = max(sx, sy) * SCALE_FACTOR
+                preview.setTransform(Matrix().apply { setScale(s, s, w / 2f, h / 2f) })
+
+                openCamera()
+            }
+            override fun onSurfaceTextureSizeChanged(st: SurfaceTexture, w: Int, h: Int) = Unit
+            override fun onSurfaceTextureDestroyed(st: SurfaceTexture) = false
+            override fun onSurfaceTextureUpdated(st: SurfaceTexture) { runInference() }
+        }
 
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
+            ActivityCompat.requestPermissions(
+                this, arrayOf(Manifest.permission.CAMERA),
+                CAMERA_REQUEST_CODE
+            )
         }
-
-        preview.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
-            override fun onSurfaceTextureAvailable(
-                st: SurfaceTexture, width: Int, height: Int
-            ) {
-                configureCamera()
-                openCamera()
-            }
-            override fun onSurfaceTextureSizeChanged(
-                st: SurfaceTexture, width: Int, height: Int
-            ) = applyFitCenter(width, height)
-            override fun onSurfaceTextureDestroyed(st: SurfaceTexture) = true
-            override fun onSurfaceTextureUpdated(st: SurfaceTexture) = runPose()
-        }
-    }
-
-    private fun configureCamera() {
-        val st = preview.surfaceTexture ?: return
-        val vw = preview.width
-        val vh = preview.height
-
-        val cameraId = if (useFront) idFront else idBack
-        cameraId ?: return
-
-        val map = camMan.getCameraCharacteristics(cameraId)
-            .get(CameraCharacteristics.SCALER_STREAM_CONFIGURATION_MAP)
-            ?: return
-        val choices = map.getOutputSizes(SurfaceTexture::class.java)
-
-        previewSize = choices
-            .filter { abs(it.width.toFloat()/it.height - vw.toFloat()/vh) < 0.01f }
-            .maxByOrNull { it.width.toLong()*it.height }
-            ?: choices.maxByOrNull { it.width.toLong()*it.height }!!
-
-        st.setDefaultBufferSize(previewSize.width, previewSize.height)
-        applyFitCenter(vw, vh)
     }
 
     @SuppressLint("MissingPermission")
     private fun openCamera() {
-        val cameraId = if (useFront) idFront else idBack
-        cameraId ?: return
+        val camId = (if (useFront) idFront else idBack) ?: return
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) return
 
-        camMan.openCamera(cameraId, object : CameraDevice.StateCallback() {
+        camMan.openCamera(camId, object : CameraDevice.StateCallback() {
             override fun onOpened(device: CameraDevice) {
                 camDevice = device
                 startPreview()
             }
-            override fun onDisconnected(device: CameraDevice) { device.close() }
-            override fun onError(device: CameraDevice, error: Int) { device.close() }
+            override fun onDisconnected(device: CameraDevice) = device.close()
+            override fun onError(device: CameraDevice, error: Int)   = device.close()
         }, null)
     }
 
     private fun startPreview() {
-        val st = preview.surfaceTexture ?: return
-        val surf = Surface(st)
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+            != PackageManager.PERMISSION_GRANTED) return
+        val surf = Surface(preview.surfaceTexture!!)
         camDevice?.createCaptureRequest(CameraDevice.TEMPLATE_PREVIEW)?.apply {
             addTarget(surf)
             camDevice?.createCaptureSession(
@@ -171,120 +201,127 @@ class SquatActivity : AppCompatActivity(), CoroutineScope by MainScope() {
                         session.setRepeatingRequest(build(), null, null)
                     }
                     override fun onConfigureFailed(session: CameraCaptureSession) {}
-                },
-                null
+                }, null
             )
         }
     }
 
-    private fun runPose() {
+    private fun runInference() {
+        if (++frameCount % FRAME_SAMPLE != 0) return
         if (busy.getAndSet(true)) return
         val now = SystemClock.uptimeMillis()
-        if (now - lastInferenceTime < MIN_INFERENCE_INTERVAL_MS) {
+        if (now - lastInferenceTime < MIN_INTERVAL_MS) {
             busy.set(false)
             return
         }
         lastInferenceTime = now
 
-        if (!::cameraBitmap.isInitialized) {
-            cameraBitmap = Bitmap.createBitmap(
+        if (!::cameraBmp.isInitialized) {
+            cameraBmp = Bitmap.createBitmap(
                 preview.width, preview.height, Bitmap.Config.ARGB_8888
             )
         }
-        preview.getBitmap(cameraBitmap)
+        preview.getBitmap(cameraBmp)
 
         launch {
-            val kps = pose.runPose(cameraBitmap)
+            val kps = withContext(Dispatchers.Default) { pose.runPose(cameraBmp) }
             withContext(Dispatchers.Main) {
-                updateUI(kps)
-                drawSkeleton(kps, cameraBitmap)
+                detectSquatRepsAndErrors(kps)
                 busy.set(false)
             }
         }
     }
 
-    private fun updateUI(kps: List<Keypoint>) {
-        val lsh = kps[LS]; val rsh = kps[RS]
-        val lwr = kps[LW]; val rwr = kps[RW]
-
-        if (lsh.score < PoseHelper.CONF_THRESHOLD ||
-            rsh.score < PoseHelper.CONF_THRESHOLD ||
-            lwr.score < PoseHelper.CONF_THRESHOLD ||
-            rwr.score < PoseHelper.CONF_THRESHOLD
-        ) {
-            handPos.visibility = View.GONE
-            depthWarn.visibility = View.GONE
-            zWarn.visibility = View.GONE
+    @SuppressLint("SetTextI18n")
+    private fun detectSquatRepsAndErrors(kps: List<Keypoint>) {
+        // require confidence
+        val lh = kps[LH]; val rh = kps[RH]
+        val lk = kps[LK]; val rk = kps[RK]
+        val la = kps[LA]; val ra = kps[RA]
+        val ls = kps[LS]; val rs = kps[RS]
+        if (listOf(lh, rh, lk, rk, la, ra, ls, rs)
+                .any { it.score < PoseHelper.CONF_THRESHOLD }) {
+            advice.visibility = View.GONE
             return
         }
 
-        val shoulderSpan = abs(lsh.x - rsh.x)
-        val wristSpan    = abs(lwr.x - rwr.x)
-        handPos.visibility =
-            if (wristSpan < shoulderSpan * 1.1f) View.VISIBLE else View.GONE
+        // midpoints & spans
+        val midHipY    = (lh.y + rh.y) / 2f
+        val midKneeY   = (lk.y + rk.y) / 2f
+        val midAnkleX  = (la.x + ra.x) / 2f
+        val midKneeX   = (lk.x + rk.x) / 2f
+        val shoulderSp = abs(ls.x - rs.x)
+        val footSp     = abs(la.x - ra.x)
+        val diff       = midHipY - midKneeY  // positive = hips below knees
 
-        val avgShY = (lsh.y + rsh.y)/2f
-        val avgWrY = (lwr.y + rwr.y)/2f
-        val diff   = abs(avgWrY - avgShY)
-        depthWarn.visibility = if (diff > DOWN_THR) View.VISIBLE else View.GONE
-
-        when {
-            avgWrY < avgShY - Z_THR -> {
-                zWarn.text = "Hands too high"
-                zWarn.visibility = View.VISIBLE
-            }
-            avgWrY > avgShY + Z_THR -> {
-                zWarn.text = "Hands too low"
-                zWarn.visibility = View.VISIBLE
-            }
-            else -> zWarn.visibility = View.GONE
-        }
-
-        if (avgWrY < avgShY) return
-        if (!goingDown && diff < DOWN_THR) goingDown = true
-        if (goingDown && diff > UP_THR) {
-            goingDown = false
+        // count rep when level within tolerance
+        if (canCount && abs(diff) < REP_LEVEL_THR) {
             reps++
-            repView.text = "Reps: $reps"
+            canCount = false
+            firstRepDone = true
+
+            repNumber.text = reps.toString()
+            ring.progress  = reps.coerceAtMost(goal)
+
+            // after first rep, check foot & lean errors
+            if (firstRepDone) {
+                when {
+                    footSp < shoulderSp * NARROW_THR -> {
+                        showError(getString(R.string.feet_too_narrow))
+                        errorCount++
+                    }
+                    footSp > shoulderSp * WIDE_THR -> {
+                        showError(getString(R.string.feet_too_wide))
+                        errorCount++
+                    }
+                }
+                if (midKneeX - midAnkleX > LEAN_THR) {
+                    showError(getString(R.string.lean_back))
+                    errorCount++
+                }
+                if ((ls.x + rs.x)/2f - midKneeX > LEAN_THR) {
+                    showError(getString(R.string.lean_forward))
+                    errorCount++
+                }
+            }
+
+            // finish
+            if (reps >= goal) {
+                val intent = Intent(this, CompletedWorkoutActivity::class.java).apply {
+                    putExtra("EXTRA_REPS", reps)
+                    putExtra("EXTRA_ERRORS", errorCount)
+                    putExtra("EXTRA_EXERCISE", "Squats")   // ★ NEW
+                }
+                startActivity(intent)
+                finish()
+                return
+            }
+        }
+
+        // reset gating once hips move away
+        if (!canCount && abs(diff) > RESET_Y_THR) {
+            canCount = true
         }
     }
 
-    private fun drawSkeleton(kps: List<Keypoint>, src: Bitmap) {
-        val bmp = src.copy(Bitmap.Config.ARGB_8888, true)
-        val canvas = Canvas(bmp)
-        val lineP = Paint().apply { color = Color.GREEN; strokeWidth = 5f }
-        val dotP  = Paint().apply { color = Color.RED }
-        val pts   = kps.map { Pair(it.x * bmp.width, it.y * bmp.height) }
-
-        skeleton.forEach { (i, j) ->
-            val a = kps[i]; val b = kps[j]
-            if (a.score >= PoseHelper.CONF_THRESHOLD && b.score >= PoseHelper.CONF_THRESHOLD) {
-                canvas.drawLine(pts[i].first, pts[i].second,
-                    pts[j].first, pts[j].second, lineP)
-            }
-        }
-        kps.forEachIndexed { idx, p ->
-            if (p.score >= PoseHelper.CONF_THRESHOLD) {
-                canvas.drawCircle(pts[idx].first, pts[idx].second, 8f, dotP)
-            }
-        }
-        overlay.setImageBitmap(bmp)
+    private fun showError(msg: String) {
+        advice.text = msg
+        advice.visibility = View.VISIBLE
     }
 
-    private fun applyFitCenter(viewW: Int, viewH: Int) {
-        if (previewSize.width == 0) return
-        val pr = previewSize.width.toFloat() / previewSize.height
-        val vr = viewW.toFloat() / viewH
-        val scale = min(pr/vr, vr/pr)
-        preview.setTransform(Matrix().apply {
-            setScale(scale, scale, viewW/2f, viewH/2f)
-        })
+    private fun loadPoseModel(): PoseHelper {
+        assets.openFd("hrnet_pose.tflite").use { afd ->
+            val buf: MappedByteBuffer =
+                FileInputStream(afd.fileDescriptor)
+                    .channel.map(FileChannel.MapMode.READ_ONLY, afd.startOffset, afd.declaredLength)
+            return PoseHelper(buf)
+        }
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        job.cancel()
         camDevice?.close()
         pose.close()
-        cancel()
     }
 }

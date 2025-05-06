@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Brand palette -->
-    <color name="brand_green">#50C878</color>
+    <color name="brand_green">#A1EF34</color>
     <color name="brand_green_dark">#37985B</color>
 
     <!-- UI palette -->
     <color name="lavender">#BB86FC</color>
     <color name="black">#000000</color>
+
+    <color name="white">#FFFFFF</color>
 </resources>
